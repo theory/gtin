@@ -1,8 +1,12 @@
-GTIN Data Type
-==============
+GTIN Data Type 0.01
+===================
 
 This distribution creates a custom PostgreSQL data type, the GTIN. GTINs are
 bar codes used to identify products. The GTIN specification is a superset of
 the UPC and EAN bar code formats with which you may already be familiar, and
 which will just work with the GTIN data type.
+
+Author
+------
+David E. Wheeler <david@kineticode.com>
 
