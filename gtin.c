@@ -9,7 +9,10 @@
 #include "utils/builtins.h"
 
 #define MAXGTINLEN 19
-#define GET_TEXT_STR(textp) DatumGetCString(DirectFunctionCall1(textout, PointerGetDatum(textp)))
+#define PG_ARGS fcinfo // Might need to change if fmgr changes its name
+#define GET_TEXT_STR(textp) DatumGetCString( \
+    DirectFunctionCall1( textout, PointerGetDatum( textp ) ) \
+)
 
 /*
  * Forward declarations.
@@ -35,6 +38,7 @@ Datum gtin_gt (PG_FUNCTION_ARGS);
 Datum gtin_ge (PG_FUNCTION_ARGS);
 
 Datum gtin_cmp (PG_FUNCTION_ARGS);
+int gtin_str_cmp (PG_FUNCTION_ARGS);
 
 /*
  * isa_gtin()
@@ -82,7 +86,7 @@ int isa_gtin(char *str) {
 PG_FUNCTION_INFO_V1(isa_gtin_text);
 
 Datum isa_gtin_text(PG_FUNCTION_ARGS) {
-    PG_RETURN_BOOL( GET_TEXT_STR( PG_GETARG_TEXT_P(0) ) );
+  PG_RETURN_BOOL( isa_gtin( GET_TEXT_STR( PG_GETARG_TEXT_P(0) ) ) );
 }
 
 /*
@@ -186,55 +190,47 @@ Datum text_to_gtin(PG_FUNCTION_ARGS) {
 PG_FUNCTION_INFO_V1(gtin_eq);
 
 Datum gtin_eq (PG_FUNCTION_ARGS) {
-    char * left    = (char *) PG_GETARG_POINTER(0);
-    char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_BOOL( strcmp( left, right ) == 0 );
+    PG_RETURN_BOOL( gtin_str_cmp( PG_ARGS ) == 0 );
 }
 
 PG_FUNCTION_INFO_V1(gtin_ne);
 
 Datum gtin_ne (PG_FUNCTION_ARGS) {
-    char * left    = (char *) PG_GETARG_POINTER(0);
-    char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_BOOL( strcmp( left, right ) != 0 );
+    PG_RETURN_BOOL( gtin_str_cmp( PG_ARGS ) != 0 );
 }
 
 PG_FUNCTION_INFO_V1(gtin_lt);
 
 Datum gtin_lt (PG_FUNCTION_ARGS) {
-    char * left    = (char *) PG_GETARG_POINTER(0);
-    char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_BOOL( strcmp( left, right ) < 0 );
+    PG_RETURN_BOOL( gtin_str_cmp( PG_ARGS ) < 0 );
 }
 
 PG_FUNCTION_INFO_V1(gtin_le);
 
 Datum gtin_le (PG_FUNCTION_ARGS) {
-    char * left    = (char *) PG_GETARG_POINTER(0);
-    char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_BOOL( strcmp( left, right ) <= 0 );
+    PG_RETURN_BOOL( gtin_str_cmp( PG_ARGS ) <= 0 );
 }
 
 PG_FUNCTION_INFO_V1(gtin_gt);
 
 Datum gtin_gt (PG_FUNCTION_ARGS) {
-    char * left    = (char *) PG_GETARG_POINTER(0);
-    char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_BOOL( strcmp( left, right ) > 0 );
+    PG_RETURN_BOOL( gtin_str_cmp( PG_ARGS ) > 0 );
 }
 
 PG_FUNCTION_INFO_V1(gtin_ge);
 
 Datum gtin_ge (PG_FUNCTION_ARGS) {
-    char * left    = (char *) PG_GETARG_POINTER(0);
-    char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_BOOL( strcmp( left, right ) >= 0 );
+    PG_RETURN_BOOL( gtin_str_cmp( PG_ARGS ) >= 0 );
 }
 
 PG_FUNCTION_INFO_V1(gtin_cmp);
 
 Datum gtin_cmp (PG_FUNCTION_ARGS) {
+    PG_RETURN_INT32( gtin_str_cmp( PG_ARGS ) );
+}
+
+int gtin_str_cmp (PG_FUNCTION_ARGS) {
     char * left    = (char *) PG_GETARG_POINTER(0);
     char * right   = (char *) PG_GETARG_POINTER(1);
-    PG_RETURN_INT32( strcmp( left, right ) );
+    return strcmp( left, right );
 }

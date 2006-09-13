@@ -31,6 +31,10 @@ insert into product values ('123',            'Milliways');
 
 \echo Accessor functions
 select gtin, isa_gtin(gtin) from product;
+\echo Expect true
+select isa_gtin('0061414000024');
+\echo Expect false
+select isa_gtin('0061414000025');
 \echo
 
 \echo Equality tests
