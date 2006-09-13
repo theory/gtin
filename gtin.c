@@ -41,6 +41,7 @@ Datum gtin_to_text (PG_FUNCTION_ARGS);
 Datum text_to_gtin (PG_FUNCTION_ARGS);
 
 Datum isa_gtin_text (PG_FUNCTION_ARGS);
+Datum gtin_to_char  (PG_FUNCTION_ARGS);
 
 int   isa_gtin       (char *str);
 Datum str_to_gtin    (char *str);
@@ -186,6 +187,42 @@ Datum isa_gtin_text(PG_FUNCTION_ARGS) {
 }
 
 /*
+ * gtin_to_char()
+ *
+ * Formats a GTIN into a string. The first argument is the GTIN, the second is
+ * the formatting string.
+ *
+ */
+
+PG_FUNCTION_INFO_V1(gtin_to_char);
+
+Datum gtin_to_char(PG_FUNCTION_ARGS) {
+    char * gtin_str = (char *) PG_GETARG_POINTER(0);
+    char * format   = (char *) GET_TEXT_STR( PG_GETARG_TEXT_P(1) );
+    int    flen     = strlen( format );
+    int    gidx     = strlen( gtin_str ) - 1;
+    int    fidx     = 0;
+	text * result   = (text *) palloc(VARHDRSZ + flen + 1);
+    char * buff     = (char *) palloc(flen + 1);
+
+    for (fidx = flen - 1; fidx >=0; fidx--) {
+        switch (format[fidx]) {
+            case '0' : buff[fidx] = gidx < 0 ? '0' : gtin_str[gidx--];
+                       break;
+            case '9' : buff[fidx] = gidx < 0 ? ' ' : gtin_str[gidx--];
+                       break;
+            default  : buff[fidx] = format[fidx];
+        }
+    }
+
+    buff[flen] = '\0';
+
+	VARATT_SIZEP( result ) = VARHDRSZ + flen;
+    memmove( VARDATA( result ), buff, flen );
+    PG_RETURN_TEXT_P( result );
+}
+
+/*
  *		=========================
  *		PRIVATE UTILITY FUNCTIONS
  *		=========================
@@ -203,7 +240,7 @@ int isa_gtin(char *str) {
     int len = strlen(str);
     int index;
     int sum = 0;
-    
+
     // Return false if there are no digits.
     if (len <= 0)
       return 0;

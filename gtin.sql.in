@@ -7,15 +7,6 @@ SET search_path = public;
 SET client_min_messages = warning;
 
 --
--- Validation functions for potential GTINs.
---
-
-CREATE OR REPLACE FUNCTION isa_gtin (text)
-RETURNS boolean
-AS 'MODULE_PATHNAME','isa_gtin_text'
-LANGUAGE 'C' IMMUTABLE STRICT;
-
---
 --	Input function and the type itself.
 --
 
@@ -153,3 +144,22 @@ DEFAULT FOR TYPE GTIN USING BTREE AS
     OPERATOR  4  >=,
     OPERATOR  5  >,
     FUNCTION  1  gtin_cmp(GTIN, GTIN);
+
+--
+-- Validation functions for potential GTINs.
+--
+
+CREATE OR REPLACE FUNCTION isa_gtin (text)
+RETURNS boolean
+AS 'MODULE_PATHNAME','isa_gtin_text'
+LANGUAGE 'C' IMMUTABLE STRICT;
+
+--
+-- Formatting function.
+--
+
+CREATE OR REPLACE FUNCTION to_char (gtin, text)
+RETURNS text
+AS 'MODULE_PATHNAME','gtin_to_char'
+LANGUAGE 'C' IMMUTABLE STRICT;
+

@@ -85,3 +85,13 @@ select * from product order by gtin ASC;
 \echo ORDER BY DESC:
 select * from product order by gtin DESC;
 \echo
+
+\echo FORMATTING
+select to_char('123'::gtin, '999')    = '123';
+select to_char('123'::gtin, '99999')  = '  123';
+select to_char('123'::gtin, '99-9')   = '12-3';
+select to_char('123'::gtin, '999-99') = '  1-23';
+select to_char('123'::gtin, '000')    = '123';
+select to_char('123'::gtin, '00000')  = '00123';
+select to_char('123'::gtin, '00-0')   = '12-3';
+select to_char('123'::gtin, '000-00') = '001-23';
