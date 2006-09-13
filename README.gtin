@@ -42,6 +42,13 @@ If you ever need to install the data type into another database, you'll find
 gtin.sql in the share/contrib subdirectory of your PostgreSQL server
 directory. This README file will be in the doc/contrib subdirectory.
 
+Other Functions
+---------------
+
+* isa_gtin()
+
+
+
 Author
 ------
 David E. Wheeler <david@kineticode.com>

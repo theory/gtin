@@ -1,5 +1,5 @@
 /*
- *  PostgreSQL type definitions for GTINs.
+ * PostgreSQL type definitions for GTINs.
  *
  */
 
@@ -26,6 +26,15 @@ Datum gtin_out (PG_FUNCTION_ARGS);
 Datum str_to_gtin (char *str);
 Datum gtin_to_text (PG_FUNCTION_ARGS);
 Datum text_to_gtin (PG_FUNCTION_ARGS);
+
+Datum gtin_eq (PG_FUNCTION_ARGS);
+Datum gtin_ne (PG_FUNCTION_ARGS);
+Datum gtin_lt (PG_FUNCTION_ARGS);
+Datum gtin_le (PG_FUNCTION_ARGS);
+Datum gtin_gt (PG_FUNCTION_ARGS);
+Datum gtin_ge (PG_FUNCTION_ARGS);
+
+Datum gtin_cmp (PG_FUNCTION_ARGS);
 
 /*
  * isa_gtin()
@@ -142,6 +151,7 @@ Datum gtin_out (PG_FUNCTION_ARGS) {
  * Converts a gtin to text.
  *
  */
+
 PG_FUNCTION_INFO_V1(gtin_to_text);
 
 Datum gtin_to_text(PG_FUNCTION_ARGS) {
@@ -160,8 +170,71 @@ Datum gtin_to_text(PG_FUNCTION_ARGS) {
  * Converts text to a gtin.
  *
  */
+
 PG_FUNCTION_INFO_V1(text_to_gtin);
 
 Datum text_to_gtin(PG_FUNCTION_ARGS) {
     return str_to_gtin( GET_TEXT_STR( PG_GETARG_TEXT_P(0) ) );
+}
+
+/*
+ *		==================
+ *		OPERATOR FUNCTIONS
+ *		==================
+ */
+
+PG_FUNCTION_INFO_V1(gtin_eq);
+
+Datum gtin_eq (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_BOOL( strcmp( left, right ) == 0 );
+}
+
+PG_FUNCTION_INFO_V1(gtin_ne);
+
+Datum gtin_ne (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_BOOL( strcmp( left, right ) != 0 );
+}
+
+PG_FUNCTION_INFO_V1(gtin_lt);
+
+Datum gtin_lt (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_BOOL( strcmp( left, right ) < 0 );
+}
+
+PG_FUNCTION_INFO_V1(gtin_le);
+
+Datum gtin_le (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_BOOL( strcmp( left, right ) <= 0 );
+}
+
+PG_FUNCTION_INFO_V1(gtin_gt);
+
+Datum gtin_gt (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_BOOL( strcmp( left, right ) > 0 );
+}
+
+PG_FUNCTION_INFO_V1(gtin_ge);
+
+Datum gtin_ge (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_BOOL( strcmp( left, right ) >= 0 );
+}
+
+PG_FUNCTION_INFO_V1(gtin_cmp);
+
+Datum gtin_cmp (PG_FUNCTION_ARGS) {
+    char * left    = (char *) PG_GETARG_POINTER(0);
+    char * right   = (char *) PG_GETARG_POINTER(1);
+    PG_RETURN_INT32( strcmp( left, right ) );
 }
