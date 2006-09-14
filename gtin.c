@@ -9,9 +9,9 @@
 #include "utils/builtins.h"
 
 /*
- *		==================
- *		MACRO DECLARATIONS
- *		==================
+ *      ==================
+ *      MACRO DECLARATIONS
+ *      ==================
  */
 
 #define MAXGTINLEN 19
@@ -21,9 +21,9 @@
 )
 
 /*
- *		====================
- *		FORWARD DECLARATIONS
- *		====================
+ *      ====================
+ *      FORWARD DECLARATIONS
+ *      ====================
  */
 
 Datum gtin_in  (PG_FUNCTION_ARGS);
@@ -48,9 +48,9 @@ Datum str_to_gtin    (char *str);
 int   gtin_str_cmp   (PG_FUNCTION_ARGS);
 
 /*
- *		==========================
- *		DATATYPE INTPUT AND OUTPUT
- *		==========================
+ *      ==========================
+ *      DATATYPE INTPUT AND OUTPUT
+ *      ==========================
  */
 
 /*
@@ -82,9 +82,9 @@ Datum gtin_out (PG_FUNCTION_ARGS) {
 }
 
 /*
- *		==================
- *		OPERATOR FUNCTIONS
- *		==================
+ *      ==================
+ *      OPERATOR FUNCTIONS
+ *      ==================
  */
 
 PG_FUNCTION_INFO_V1(gtin_eq);
@@ -130,9 +130,9 @@ Datum gtin_cmp (PG_FUNCTION_ARGS) {
 }
 
 /*
- *		==============
- *		CAST FUNCTIONS
- *		==============
+ *      ==============
+ *      CAST FUNCTIONS
+ *      ==============
  */
 
 /*
@@ -146,10 +146,10 @@ PG_FUNCTION_INFO_V1(gtin_to_text);
 
 Datum gtin_to_text(PG_FUNCTION_ARGS) {
     char * src    = (char *) PG_GETARG_POINTER(0);
-	int    len    = strlen( src );
-	text * result = (text *) palloc(VARHDRSZ + len);
+    int    len    = strlen( src );
+    text * result = (text *) palloc(VARHDRSZ + len);
 
-	VARATT_SIZEP( result ) = VARHDRSZ + len;
+    VARATT_SIZEP( result ) = VARHDRSZ + len;
     memmove( VARDATA( result ), src, len );
     PG_RETURN_TEXT_P( result );
 }
@@ -168,9 +168,9 @@ Datum text_to_gtin(PG_FUNCTION_ARGS) {
 }
 
 /*
- *		=================
- *		UTILITY FUNCTIONS
- *		=================
+ *      =================
+ *      UTILITY FUNCTIONS
+ *      =================
  */
 
 /*
@@ -202,7 +202,7 @@ Datum gtin_to_char(PG_FUNCTION_ARGS) {
     int    flen     = strlen( format );
     int    gidx     = strlen( gtin_str ) - 1;
     int    fidx     = 0;
-	text * result   = (text *) palloc(VARHDRSZ + flen + 1);
+    text * result   = (text *) palloc(VARHDRSZ + flen + 1);
     char * buff     = (char *) palloc(flen + 1);
 
     for (fidx = flen - 1; fidx >=0; fidx--) {
@@ -217,15 +217,15 @@ Datum gtin_to_char(PG_FUNCTION_ARGS) {
 
     buff[flen] = '\0';
 
-	VARATT_SIZEP( result ) = VARHDRSZ + flen;
+    VARATT_SIZEP( result ) = VARHDRSZ + flen;
     memmove( VARDATA( result ), buff, flen );
     PG_RETURN_TEXT_P( result );
 }
 
 /*
- *		=========================
- *		PRIVATE UTILITY FUNCTIONS
- *		=========================
+ *      =========================
+ *      PRIVATE UTILITY FUNCTIONS
+ *      =========================
  */
 
 /*
