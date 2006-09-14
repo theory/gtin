@@ -40,12 +40,13 @@ Datum gtin_cmp (PG_FUNCTION_ARGS);
 Datum gtin_to_text (PG_FUNCTION_ARGS);
 Datum text_to_gtin (PG_FUNCTION_ARGS);
 
-Datum isa_gtin_text (PG_FUNCTION_ARGS);
-Datum gtin_to_char  (PG_FUNCTION_ARGS);
+Datum isa_gtin     (PG_FUNCTION_ARGS);
+Datum gtin_to_char (PG_FUNCTION_ARGS);
 
-int   isa_gtin       (char *str);
-Datum str_to_gtin    (char *str);
-int   gtin_str_cmp   (PG_FUNCTION_ARGS);
+int    check_checksum (char *str);
+Datum  str_to_gtin    (char *str);
+int    gtin_str_cmp   (PG_FUNCTION_ARGS);
+char  *normalize_gtin (char *str);
 
 /*
  *      ==========================
@@ -56,13 +57,13 @@ int   gtin_str_cmp   (PG_FUNCTION_ARGS);
 /*
  * Name: gtin_in()
  *
- * Converts a gtin from an external for to an internal form.
+ * Converts a gtin from the external form to the internal form.
  *
  */
 
 PG_FUNCTION_INFO_V1(gtin_in);
 Datum gtin_in (PG_FUNCTION_ARGS) {
-  return( str_to_gtin( PG_GETARG_CSTRING(0) ) );
+    return( str_to_gtin( PG_GETARG_CSTRING(0) ) );
 }
 
 /*
@@ -75,8 +76,8 @@ Datum gtin_in (PG_FUNCTION_ARGS) {
 PG_FUNCTION_INFO_V1(gtin_out);
 
 Datum gtin_out (PG_FUNCTION_ARGS) {
-    char * src    = (char *) PG_GETARG_POINTER(0);
-    char * result = (char *) palloc( strlen(src) + 1 );
+    char *src    = (char *) PG_GETARG_POINTER(0);
+    char *result = (char *) palloc( strlen(src) + 1 );
     strcpy( result, src );
     PG_RETURN_CSTRING( result );
 }
@@ -174,16 +175,24 @@ Datum text_to_gtin(PG_FUNCTION_ARGS) {
  */
 
 /*
- * isa_gtin_text()
+ * isa_gtin()
  *
  * Validates GTINs passed as PostgreSQL text.
  *
  */
 
-PG_FUNCTION_INFO_V1(isa_gtin_text);
+PG_FUNCTION_INFO_V1(isa_gtin);
 
-Datum isa_gtin_text(PG_FUNCTION_ARGS) {
-  PG_RETURN_BOOL( isa_gtin( GET_TEXT_STR( PG_GETARG_TEXT_P(0) ) ) );
+Datum isa_gtin(PG_FUNCTION_ARGS) {
+    char *str  = GET_TEXT_STR( PG_GETARG_TEXT_P(0) );
+    char *norm = normalize_gtin( str );
+    int   len  = strlen( str );
+
+    if (!len) PG_RETURN_BOOL( 0 );
+    len = strlen( norm );
+    if (!len || len > MAXGTINLEN - 1)  PG_RETURN_BOOL( 0 );
+
+    PG_RETURN_BOOL( check_checksum( norm ) );
 }
 
 /*
@@ -229,14 +238,14 @@ Datum gtin_to_char(PG_FUNCTION_ARGS) {
  */
 
 /*
- * isa_gtin()
+ * check_checksum()
  *
  * This function does the work of validating a GTIN. It is called by gtin_in()
- * and isa_gtin_text().
+ * and isa_gtin().
  *
  */
 
-int isa_gtin(char *str) {
+int check_checksum(char *str) {
     int len = strlen(str);
     int index;
     int sum = 0;
@@ -273,20 +282,48 @@ int isa_gtin(char *str) {
  */
 
 Datum str_to_gtin (char *str) {
-    char *result = (char *) palloc( MAXGTINLEN );
+    int   len    = strlen( str );
+    char *result = normalize_gtin( str );
 
-    // Strip out leading 0s.
-    while (*str == '0') ++str; // XXX Memory leak??
-
-    if (!isa_gtin(str)) {
+    if ( !len ) {
+        // A GTIN cannot be empty.
         ereport( ERROR, (
             errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-            errmsg("\"%s\" is not a valid GTIN", str)
+            errmsg("GTIN cannot be empty")
         ));
     }
 
-    memset( result, 0, MAXGTINLEN );
-    result = (char *) str;
+    len = strlen( result );
+    if ( !len ) {
+        // normalize_gtin() returns empty if it has invalid characters.
+        ereport( ERROR, (
+            errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+            errmsg("Invalid characters in GTIN \"%s\"", str)
+        ));
+    }
+
+    if (len > MAXGTINLEN - 1) {
+        // A GTIN cannot be more than 18 characters.
+        ereport( ERROR, (
+            errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+            errmsg(
+                "GTIN cannot be more than %d characters: \"%s\"",
+                MAXGTINLEN - 1,
+                str
+            )
+        ));
+    }
+
+    if ( !check_checksum( result ) ) {
+        // check_checksum() returns false if the checksum is invalid.
+        ereport( ERROR, (
+            errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+            errmsg("Invalid checksum for GTIN \"%s\"", str)
+        ));
+    }
+
+    // Make sure that the string is the proper length and return it.
+    repalloc( result, MAXGTINLEN );
     PG_RETURN_POINTER( result );
 }
 
@@ -301,5 +338,49 @@ Datum str_to_gtin (char *str) {
 int gtin_str_cmp (PG_FUNCTION_ARGS) {
     char * left    = (char *) PG_GETARG_POINTER(0);
     char * right   = (char *) PG_GETARG_POINTER(1);
+    // XXX Should I left pad the shorter one with 0s?
     return strcmp( left, right );
+}
+
+/*
+ * normalize_gtin()
+ *
+ * This function normalizes a GTIN. What that means is that it strips out any
+ * leading 0s and any spaces or dashes and returns the result. If any
+ * characters other than digits, spaces, or dashes are in the string, an empty
+ * string will be returned. That can be evaluated to false, so that an error
+ * may be thrown to indicate that there were invalid characters in the GTIN.
+ *
+ */
+
+char * normalize_gtin (char *str) {
+    int   index  = 0;
+    int   rindex = 0;
+    char *result = (char *) palloc( strlen( str ) + 1 );
+
+    // Eliminate leading zeros.
+    while (*str == '0') ++str;
+
+    // Copy string with extra charaters (space, dash) removed.
+    for (index = 0; index < strlen( str ); index++) {
+        switch (str[index]) {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': result[rindex++] = str[index]; break;
+            case '-':
+            case ' ': break;
+            default : return "";
+        }
+    }
+
+    // Finish the string and return.
+    result[rindex++] = '\0';
+    return result;
 }

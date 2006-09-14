@@ -9,21 +9,33 @@ CREATE TEMP TABLE product (
     name    text
 );
 
-\echo ##############################################################################
-\echo expect gtin ERROR
-insert into product values ('4007630000117', 'Bad');
-\echo ##############################################################################
+\echo ########################################################################
+\echo expect empty GTIN ERROR
+insert into product values ('', 'Empty GTIN');
 \echo
-\echo ##############################################################################
+\echo ########################################################################
+\echo expect bad characters error
+insert into product values ('400763+0000116', 'Invalid Character');
+\echo
+\echo ########################################################################
+\echo expect long GTIN error.
+insert into product values ('1231231231234007630000116', 'Too Long');
+\echo
+\echo ########################################################################
+\echo expect invalid checksum ERROR
+insert into product values ('4007630000117', 'Invalid Checksum');
+\echo
+\echo ########################################################################
 \echo expect PK ERROR
 insert into product values ('4007630000116', 'PK');
 insert into product values ('4007630000116', 'PK');
-\echo ##############################################################################
+\echo ########################################################################
 \echo
-\echo No errors
+
+\echo Expect No errors
 insert into product values ('0061414000024',  'Arthur Dent');
-insert into product values ('0012345000065',  'Ford Prefect');
-insert into product values ('614141000418',   'Zaphod Beeblebrox');
+insert into product values ('0012345-000065', 'Ford Prefect');
+insert into product values ('614141 000418',  'Zaphod Beeblebrox');
 insert into product values ('10614141000415', 'Trillian');
 insert into product values ('10614141450005', 'Slartibartfast');
 insert into product values ('10614141777775', 'Zarniwoop');
@@ -31,15 +43,19 @@ insert into product values ('123',            'Milliways');
 
 \echo Accessor functions
 select gtin, isa_gtin(gtin) from product;
-\echo Expect true
-select isa_gtin('0061414000024');
+\echo Expect trues
+select isa_gtin('0061414000024'), isa_gtin('00614 1400 0024'),
+       isa_gtin('00614-1400-0024');
 \echo Expect false
-select isa_gtin('0061414000025');
+select isa_gtin('0061414000025'), isa_gtin(''), isa_gtin('12+3'),
+       isa_gtin('1231231231234007630000116');
 \echo
-
 \echo Equality tests
 select '0061414000024'::gtin = '61414000024'::gtin AS is_same_gtin;
+select '6141-400 0024'::gtin = '61414000024'::gtin AS is_same_gtin;
+
 select name, gtin from product where gtin = '0061414000024';
+select name, gtin from product where gtin = '006 1414-000024';
 select a.gtin, a2.name from product a JOIN product a2 USING (gtin);
 select a.gtin, a2.name from product a JOIN product a2 ON (UPPER(a.gtin)::gtin = a2.gtin);
 
