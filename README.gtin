@@ -26,6 +26,15 @@ your $PATH environment variable:
 
   env PATH=$PATH:/path/to/pgsql/bin make && make install
 
+And finally, if all that fails, copy the entire distribution directory to the
+'contrib' subdirectory of the PostgreSQL source code and try it there.
+
+Once you've got the GTIN datatype installed, you should run the test script to
+make sure it all works (the test script creates only a single temporary table,
+so your database should oterwise be unaffected by it), just type this command:
+
+  psql -f test.sql [db_name]
+
 Usage
 -----
 
@@ -33,19 +42,39 @@ Once you've installed the GTIN data type, you can start using it in your
 database.
 
   CREATE TABLE product (
-      id       SERIAL PRIMARY KEY,
-      bar_code GTIN,
-      name     TEXT
+      id    SERIAL PRIMARY KEY,
+      gtin  GTIN,
+      name  TEXT
   );
 
+  INSERT INTO product VALUES ('0061414000024',  'Arthur Dent');
+  INSERT INTO product VALUES ('0012345-000065', 'Ford Prefect');
+  INSERT INTO product VALUES ('614141 000418',  'Zaphod Beeblebrox');
+  INSERT INTO product VALUES ('10614141000415', 'Trillian');
+  INSERT INTO product VALUES ('10614141450005', 'Slartibartfast');
+  INSERT INTO product VALUES ('10614141777775', 'Zarniwoop');
+  INSERT INTO product VALUES ('123',            'Milliways');
+
+A GTIN is specifed in PostgreSQL as a string of digits. Spaces, dashes, and
+leading 0s are allowed by the GTIN data type, but they will be stripped out
+before storage (see to_char() below for how to get them back). Othwerwise,
+only digits are allowed. Any other character will trigger an error.
+Furthermore, GTINs can be no more than 18 characters long (excluding leading
+0s, commas, and spaces), and cannot be empty strings, or else errors will
+result. And finally, the GTIN checksum must be correct in order for it to be
+considered valid by PostgreSQL.
+
+For more example usage, consult 'test.sql'.
+
 If you ever need to install the data type into another database, you'll find
-gtin.sql in the share/contrib subdirectory of your PostgreSQL server
-directory. This README file will be in the doc/contrib subdirectory.
+'gtin.sql' in the 'share/contrib' subdirectory of your PostgreSQL server
+directory. This 'README.gtin' file will be in the 'doc/contrib' subdirectory.
 
-Other Functions
----------------
+Utility Functions
+-----------------
 
-* isa_gtin(text)
+isa_gtin(text)
+++++++++++++++
 
   try=% select isa_gtin('123'), isa_gtin('122');;
    isa_gtin | isa_gtin 
@@ -57,7 +86,8 @@ This function returns a boolean value if its argument is a valid GTIN and
 false if it does not. It expects a text argument, but other arguments, such as
 bigints, are also supported via implicit casting.
 
-* to_char(gtin, text)
+to_char(gtin, text)
+++++++++++++++
 
   try=% select to_char('0012345678905'::gtin, '0 00000 00000 0') as upc_12;
        upc_12      
@@ -89,7 +119,7 @@ recognized in the format string, which is the second argument, are "0" and
 
 The format is evaluated from right to left, similar to how to_char(int, text)
 works. This is so that you can properly left-pad a GTIN to create typical
-formats for UPCs, EANs, and GTINs that are still formally GTIN. The trick is
+formats for UPCs, EANs, and GTINs that are still formally GTINs. The trick is
 that if you have a UPC 8 GTIN, such as "1234565", and you need to display it
 in GTIN 14 format, the left extra places on the left must be 0-padded. The "0"
 format character does just that:
