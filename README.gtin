@@ -169,6 +169,22 @@ To Do
 
 * Write conversion functions for ISSN and ISBN.
 
+Suported Platforms
+------------------
+
+This package uses PostgreSQL's build tools for easy cross-platform build
+suport. It is therefore designed to build and install on any platform that
+supports PostgreSQL. It is known to work on the following platforms and
+operating systems.
+
+* FreeBSD 5.4-RELEASE-p12 i386
+* FreeBSD 4.8-STABLE i386
+* Darwin 8.7.0 Power Macintosh
+* Linux 2.6.11-1.1369_FC4 i686
+
+If you know of others, please submit them! Use `uname -mrs` to get the formal
+OS and hardware names.
+
 Author
 ------
 David E. Wheeler <david@kineticode.com>
