@@ -8,6 +8,11 @@
 #include "fmgr.h"
 #include "utils/builtins.h"
 
+// PostgreSQL 8.2 Magic.
+#ifdef PG_MODULE_MAGIC
+PG_MODULE_MAGIC;
+#endif
+
 /*
  *      ==================
  *      MACRO DECLARATIONS
