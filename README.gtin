@@ -152,7 +152,12 @@ prefix:
   -----------
    0001
   (1 row)
-  
+
+To Do
+-----
+
+* Write conversion functions for ISSN and ISBN.
+
 Author
 ------
 David E. Wheeler <david@kineticode.com>
