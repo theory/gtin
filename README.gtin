@@ -17,6 +17,17 @@ To install the GTIN data type, just type these commands
 
 If you encounter an error such as:
 
+  "Makefile", line 8: Need an operator
+
+You need to use GNU make, which may well be installed on your system as
+'gmake':
+
+  gmake
+  gmake install
+  psql -f gtin.sql [db_name]
+
+If you encounter an error such as:
+
   make: pg_config: Command not found
 
 Be sure that you have pg_config installed and in your path. If you used a
