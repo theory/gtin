@@ -1,4 +1,4 @@
-GTIN Data Type 0.01
+GTIN Data Type 0.02
 ===================
 
 This distribution creates a custom PostgreSQL data type, the GTIN. GTINs are
