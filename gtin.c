@@ -82,8 +82,7 @@ PG_FUNCTION_INFO_V1(gtin_out);
 
 Datum gtin_out (PG_FUNCTION_ARGS) {
     char *src    = (char *) PG_GETARG_POINTER(0);
-    char *result = (char *) palloc( strlen(src) + 1 );
-    strcpy( result, src );
+    char *result = (char *) pstrdup( src );
     PG_RETURN_CSTRING( result );
 }
 
@@ -361,13 +360,15 @@ int gtin_str_cmp (PG_FUNCTION_ARGS) {
 char * normalize_gtin (char *str) {
     int   index  = 0;
     int   rindex = 0;
+    int   len    = 0;
     char *result = (char *) palloc( strlen( str ) + 1 );
 
     // Eliminate leading zeros.
     while (*str == '0') ++str;
+    len = strlen( str );
 
     // Copy string with extra charaters (space, dash) removed.
-    for (index = 0; index < strlen( str ); index++) {
+    for (index = 0; index < len; index++) {
         switch (str[index]) {
             case '0':
             case '1':
