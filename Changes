@@ -1,10 +1,10 @@
 Revision history for PostgreSQL data type GTIN.
 
-0.02
-
-      - Eliminated call to strlen() for each character when iteratiring over a
-        GTIN string in normalize_gtin(). Suggested by Korry Douglas.
-      - Simlified gtin_out() by using pstrdup(). Suggested by Korry Douglas.
+0.2.0
+      - Eliminated call to `strlen()` for each character when iterating over a
+        GTIN string in `normalize_gtin()`. Suggested by Korry Douglas.
+      - Simlified `gtin_out()` by using `pstrdup()`. Suggested by Korry
+        Douglas.
 
 0.01  2006-09-22T16:36:48
       - Initial public release.
