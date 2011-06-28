@@ -6,6 +6,9 @@ Revision history for PostgreSQL data type GTIN.
       - Simlified `gtin_out()` by using `pstrdup()`. Suggested by Korry
         Douglas.
       - Fixed incompatibility with PostgreSQL 8.3 and higher.
+      - Reorganized source code to match current preferred practices.
+      - Moved test script so that it can be used with `pg_regress` and
+        therefore `make installcheck`.
 
 0.01  2006-09-22T16:36:48
       - Initial public release.
