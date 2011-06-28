@@ -1,50 +1,10 @@
-GTIN Data Type 0.02
-===================
+GTIN Data Type 0.0.2
+====================
 
 This distribution creates a custom PostgreSQL data type, the GTIN. GTINs are
 bar codes used to identify products. The GTIN specification is a superset of
 the UPC and EAN bar code formats with which you may already be familiar, and
 which will just work with the GTIN data type.
-
-Installation
-------------
-
-To install the GTIN data type, just type these commands
-
-  make
-  make install
-  psql -f gtin.sql [db_name]
-
-If you encounter an error such as:
-
-  "Makefile", line 8: Need an operator
-
-You need to use GNU make, which may well be installed on your system as
-'gmake':
-
-  gmake
-  gmake install
-  psql -f gtin.sql [db_name]
-
-If you encounter an error such as:
-
-  make: pg_config: Command not found
-
-Be sure that you have pg_config installed and in your path. If you used a
-package management system such as RPM to install PostgreSQL, be sure that the
--devel package is also installed. If necessary, add the path to pg_config to
-your $PATH environment variable:
-
-  env PATH=$PATH:/path/to/pgsql/bin make && make install
-
-And finally, if all that fails, copy the entire distribution directory to the
-'contrib' subdirectory of the PostgreSQL source code and try it there.
-
-Once you've got the GTIN datatype installed, you should run the test script to
-make sure it all works (the test script creates only a single temporary table,
-so your database should oterwise be unaffected by it), just type this command:
-
-  psql -f test.sql [db_name]
 
 Usage
 -----
@@ -52,19 +12,19 @@ Usage
 Once you've installed the GTIN data type, you can start using it in your
 database.
 
-  CREATE TABLE product (
-      id    SERIAL PRIMARY KEY,
-      gtin  GTIN,
-      name  TEXT
-  );
+    CREATE TABLE product (
+        id    SERIAL PRIMARY KEY,
+        gtin  GTIN,
+        name  TEXT
+    );
 
-  INSERT INTO product VALUES ('0061414000024',  'Arthur Dent');
-  INSERT INTO product VALUES ('0012345-000065', 'Ford Prefect');
-  INSERT INTO product VALUES ('614141 000418',  'Zaphod Beeblebrox');
-  INSERT INTO product VALUES ('10614141000415', 'Trillian');
-  INSERT INTO product VALUES ('10614141450005', 'Slartibartfast');
-  INSERT INTO product VALUES ('10614141777775', 'Zarniwoop');
-  INSERT INTO product VALUES ('123',            'Milliways');
+    INSERT INTO product VALUES ('0061414000024',  'Arthur Dent');
+    INSERT INTO product VALUES ('0012345-000065', 'Ford Prefect');
+    INSERT INTO product VALUES ('614141 000418',  'Zaphod Beeblebrox');
+    INSERT INTO product VALUES ('10614141000415', 'Trillian');
+    INSERT INTO product VALUES ('10614141450005', 'Slartibartfast');
+    INSERT INTO product VALUES ('10614141777775', 'Zarniwoop');
+    INSERT INTO product VALUES ('123',            'Milliways');
 
 A GTIN is specifed in PostgreSQL as a string of digits. Spaces, dashes, and
 leading 0s are allowed by the GTIN data type, but they will be stripped out
@@ -84,45 +44,43 @@ directory. This 'README.gtin' file will be in the 'doc/contrib' subdirectory.
 Utility Functions
 -----------------
 
-isa_gtin(text)
-++++++++++++++
+### isa_gtin(text) ###
 
-  try=% select isa_gtin('123'), isa_gtin('122');;
-   isa_gtin | isa_gtin 
-  ----------+----------
-   t        | f
-  (1 row)
+    try=% select isa_gtin('123'), isa_gtin('122');;
+     isa_gtin | isa_gtin 
+    ----------+----------
+     t        | f
+    (1 row)
 
 This function returns a boolean value if its argument is a valid GTIN and
 false if it does not. It expects a text argument, but other arguments, such as
 bigints, are also supported via implicit casting.
 
-to_char(gtin, text)
-++++++++++++++
+### to_char(gtin, text) ###
 
-  try=% select to_char('0012345678905'::gtin, '0 00000 00000 0') as upc_12;
-       upc_12      
-  -----------------
-   0 12345 67890 5
-  (1 row)
-  
-  try=% select to_char('00123456789104'::gtin, '0 000000 000000') as ean_13;
-       ean_13      
-  -----------------
-   0 123456 789104
-  (1 row)
-  
-  try=% select to_char('00000001234565'::gtin, '0000 0000') as ean_8;
-     ean_8   
-  -----------
-   0123 4565
-  (1 row)
-  
-  try=% select to_char('10012345123457'::gtin, '0 00 00000 00000 0') as gtin_14;
-        gtin_14       
-  --------------------
-   1 00 12345 12345 7
-  (1 row)
+    try=% select to_char('0012345678905'::gtin, '0 00000 00000 0') as upc_12;
+         upc_12      
+    -----------------
+     0 12345 67890 5
+    (1 row)
+
+    try=% select to_char('00123456789104'::gtin, '0 000000 000000') as ean_13;
+         ean_13      
+    -----------------
+     0 123456 789104
+    (1 row)
+
+    try=% select to_char('00000001234565'::gtin, '0000 0000') as ean_8;
+       ean_8   
+    -----------
+     0123 4565
+    (1 row)
+
+    try=% select to_char('10012345123457'::gtin, '0 00 00000 00000 0') as gtin_14;
+          gtin_14       
+    --------------------
+     1 00 12345 12345 7
+    (1 row)
   
 This function formats a GTIN into a text string. The only characters
 recognized in the format string, which is the second argument, are "0" and
@@ -135,78 +93,64 @@ that if you have a UPC 8 GTIN, such as "1234565", and you need to display it
 in GTIN 14 format, the left extra places on the left must be 0-padded. The "0"
 format character does just that:
 
-  try=% select to_char('1234565'::gtin, '0 00 00000 00000 0') as gtin_14;
-        gtin_14       
-  --------------------
-   0 00 00001 23456 5
-  (1 row)
+    try=% select to_char('1234565'::gtin, '0 00 00000 00000 0') as gtin_14;
+          gtin_14       
+    --------------------
+     0 00 00001 23456 5
+    (1 row)
 
 The "9" format is provided for compatibility with PostgreSQL numeric
 formatting functions. It stands in for the digit in its place, but pads with a
 space rather than a 0:
 
-  try=% select to_char('1234565'::gtin, '9 99 99999 99999 9');
-        to_char
-  --------------------
-            1 23456 5
-  (1 row)
+    try=% select to_char('1234565'::gtin, '9 99 99999 99999 9');
+          to_char
+    --------------------
+              1 23456 5
+    (1 row)
 
 Although I wouldn't actually expect it to be used all that often. :-). You can
 also use the to_char() function to extract parts of your GTIN, such as the
 prefix:
 
-  try=% select substring(
-  try(%     to_char('12345678905'::gtin, '00000000000000')
-  try(%      from 1 for 4
-  try(% );
-   substring 
-  -----------
-   0001
-  (1 row)
+    try=% select substring(
+    try(%     to_char('12345678905'::gtin, '00000000000000')
+    try(%      from 1 for 4
+    try(% );
+     substring 
+    -----------
+     0001
+    (1 row)
 
 To Do
 -----
 
 * Write conversion functions for ISSN and ISBN.
 
-Suported Platforms
-------------------
-
-This package uses PostgreSQL's build tools for easy cross-platform build
-suport. It is therefore designed to build and install on any platform that
-supports PostgreSQL. It is known to work on the following platforms and
-operating systems.
-
-* FreeBSD 5.4-RELEASE-p12 i386
-* FreeBSD 4.8-STABLE i386
-* Darwin 8.7.0 Power Macintosh
-* Linux 2.6.11-1.1369_FC4 i686
-
-If you know of others, please submit them! Use `uname -mrs` to get the formal
-OS and hardware names.
-
 Author
 ------
-David E. Wheeler <david@kineticode.com>
+David E. Wheeler <david@justatheory.com>
 
 Copyright and License
 ---------------------
 
-Copyright (c) 2006-2008 David Wheeler. Some Rights Reserved.
+Copyright (c) 2006-2011 David E. Wheeler. Some Rights Reserved.
+
+This module is free software; you can redistribute it and/or modify it under
+the [PostgreSQL License](http://www.opensource.org/licenses/postgresql).
 
 Permission to use, copy, modify, and distribute this software and its
 documentation for any purpose, without fee, and without a written agreement is
 hereby granted, provided that the above copyright notice and this paragraph
 and the following two paragraphs appear in all copies.
 
-IN NO EVENT SHALL KINETICODE BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT,
-SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING
-OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF KINETICODE HAS
-BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+In no event shall David E. Wheeler be liable to any party for direct,
+indirect, special, incidental, or consequential damages, including lost
+profits, arising out of the use of this software and its documentation, even
+if David E. Wheeler has been advised of the possibility of such damage.
 
-KINETICODE SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND
-KINETICODE HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES,
-ENHANCEMENTS, OR MODIFICATIONS.
-
+David E. Wheeler specifically disclaim any warranties, including, but not
+limited to, the implied warranties of merchantability and fitness for a
+particular purpose. The software provided hereunder is on an "as is" basis,
+and David E. Wheeler have no obligations to provide maintenance, support,
+updates, enhancements, or modifications.
