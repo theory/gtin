@@ -13,6 +13,12 @@
 PG_MODULE_MAGIC;
 #endif
 
+/* PostgreSQL < 8.3 uses VARATT_SIZEP rather than SET_VARSIZE for varlena types */
+#ifndef SET_VARSIZE
+#define SET_VARSIZE(var, size)   VARATT_SIZEP(var) = size
+#endif
+
+
 /*
  *      ==================
  *      MACRO DECLARATIONS
@@ -154,7 +160,7 @@ Datum gtin_to_text(PG_FUNCTION_ARGS) {
     int    len    = strlen( src );
     text * result = (text *) palloc(VARHDRSZ + len);
 
-    VARATT_SIZEP( result ) = VARHDRSZ + len;
+    SET_VARSIZE( result, VARHDRSZ + len );
     memmove( VARDATA( result ), src, len );
     PG_RETURN_TEXT_P( result );
 }
@@ -230,7 +236,7 @@ Datum gtin_to_char(PG_FUNCTION_ARGS) {
 
     buff[flen] = '\0';
 
-    VARATT_SIZEP( result ) = VARHDRSZ + flen;
+    SET_VARSIZE( result, VARHDRSZ + flen );
     memmove( VARDATA( result ), buff, flen );
     PG_RETURN_TEXT_P( result );
 }

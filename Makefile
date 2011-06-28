@@ -1,17 +1,11 @@
-MODULES = gtin
-DATA_built = gtin.sql
-DOCS = README.gtin
+DATA         = $(wildcard sql/*.sql)
+DOCS         = $(wildcard doc/*.*)
+MODULES      = $(patsubst %.c,%,$(wildcard src/*.c))
 
-top_builddir = ../..
-in_contrib = $(wildcard $(top_builddir)/src/Makefile.global);
+TESTS        = $(wildcard test/sql/*.sql)
+REGRESS      = $(patsubst test/sql/%.sql,%,$(TESTS))
+REGRESS_OPTS = --inputdir=test
 
-ifdef $(in_contrib)
-	# Just include the local makefiles
-	subdir = contrib/gtin
-	include $(top_builddir)/src/Makefile.global
-	include $(top_srcdir)/contrib/contrib-global.mk
-else
-	# Use pg_config to find PGXS and include it.
-	PGXS := $(shell pg_config --pgxs)
-	include $(PGXS)
-endif
+PG_CONFIG    = pg_config
+PGXS        := $(shell $(PG_CONFIG) --pgxs)
+include $(PGXS)

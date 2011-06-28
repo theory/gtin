@@ -5,6 +5,7 @@ Revision history for PostgreSQL data type GTIN.
         GTIN string in `normalize_gtin()`. Suggested by Korry Douglas.
       - Simlified `gtin_out()` by using `pstrdup()`. Suggested by Korry
         Douglas.
+      - Fixed incompatibility with PostgreSQL 8.3 and higher.
 
 0.01  2006-09-22T16:36:48
       - Initial public release.
