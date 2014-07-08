@@ -332,7 +332,7 @@ Datum str_to_gtin(char *str) {
     }
 
     // Make sure that the string is the proper length and return it.
-    repalloc(result, MAXGTINLEN);
+    result = repalloc(result, MAXGTINLEN);
     PG_RETURN_POINTER(result);
 }
 
